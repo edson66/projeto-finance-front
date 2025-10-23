@@ -209,7 +209,7 @@ const handleSalvarEdicao = async (event) => {
 
   const handleLogout = () => {
     localStorage.removeItem('authToken'); 
-    navigate('/'); 
+    nav('/'); 
   };
 
 
