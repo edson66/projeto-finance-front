@@ -34,11 +34,12 @@ const styleModal = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 600,
-  bgcolor: 'background.paper', 
+  width: '90%',
+  maxWidth: 600,
+  bgcolor: 'background.paper',
   border: '2px solid #000',
   boxShadow: 24,
-  p: 4, 
+  p: { xs: 2, sm: 4 },
 };
 
 
@@ -84,45 +85,48 @@ function Dashboard() {
     }
   };
   
-  useEffect(() => {
-    const buscarTransacoes = async () => {
-      try {
-        const response = await api.get('/transacoes'); 
-        const data = response.data.content || response.data;
-        const dataArray = Array.isArray(data) ? data : [];
-        dataArray.sort((a, b) => new Date(b.data) - new Date(a.data));
-        setTransacoes(dataArray);
-      } catch (error) {
-        console.error('Erro ao buscar transações:', error);
-        setTransacoes([]); 
-        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-          alert('Sua sessão expirou. Faça login novamente.');
-        }
-      }
-    };
-    buscarTransacoes();
-    buscarSumarioFiltrado(dataInicioFiltro, dataFimFiltro);
-  }, []); 
 
-  const handleAdicionarTransacao = async (event) => {
+const handleAdicionarTransacao = async (event) => {
     event.preventDefault();
     const novaTransacao = {
       descricao, valor: parseFloat(valor),
-      data: dataTransacao.format('YYYY-MM-DD') + 'T00:00:00', 
+      data: dataTransacao.format('YYYY-MM-DD') + 'T00:00:00',
       tipo, tipoCategoria: categoria
     };
     try {
-      const response = await api.post('/transacoes', novaTransacao);
-      const listaAtualizada = [response.data, ...transacoes];
-      listaAtualizada.sort((a, b) => new Date(b.data) - new Date(a.data));
-      setTransacoes(listaAtualizada);
+      await api.post('/transacoes', novaTransacao);
+
+      await buscarTransacoes();
+
       setDescricao(''); setValor(''); setTipo('DESPESA');
       setCategoria('OUTRO'); setDataTransacao(dayjs());
+
     } catch (error) {
       console.error('Erro ao adicionar transação:', error);
       alert('Falha ao adicionar transação. Verifique os dados.');
     }
   };
+
+  const buscarTransacoes = async () => {
+    try {
+      const response = await api.get('/transacoes');
+      const data = response.data.content || response.data;
+      const dataArray = Array.isArray(data) ? data : [];
+      dataArray.sort((a, b) => new Date(b.data) - new Date(a.data));
+      setTransacoes(dataArray);
+    } catch (error) {
+      console.error('Erro ao buscar transações:', error);
+      setTransacoes([]);
+      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+        alert('Sua sessão expirou. Faça login novamente.');
+      }
+    }
+  };
+
+  useEffect(() => {
+    buscarTransacoes();
+    buscarSumarioFiltrado(dataInicioFiltro, dataFimFiltro);
+  }, []);
 
   const handleFiltrarClick = () => {
     const textoInicio = dataInicioFiltro.format('DD/MM/YY');
@@ -165,7 +169,7 @@ function Dashboard() {
     });
   };
 
-  const handleSalvarEdicao = async (event) => {
+const handleSalvarEdicao = async (event) => {
     event.preventDefault();
     
     let dataFormatada;
@@ -176,6 +180,7 @@ function Dashboard() {
     }
 
     const payload = {
+      id: transacaoParaEditar.id,
       descricao: transacaoParaEditar.descricao,
       valor: parseFloat(transacaoParaEditar.valor),
       data: dataFormatada,
@@ -184,20 +189,19 @@ function Dashboard() {
     };
 
     try {
-      const response = await api.put(`/transacoes/${transacaoParaEditar.id}`, payload);
+      await api.put('/transacoes', payload);
 
-      const listaAtualizada = transacoes.map(t => 
-        t.id === transacaoParaEditar.id ? response.data : t
-      );
+      await buscarTransacoes();
 
-      listaAtualizada.sort((a, b) => new Date(b.data) - new Date(a.data));
-      setTransacoes(listaAtualizada);
-
-      handleFecharModal();
+      handleFecharModal(); 
 
     } catch (error) {
       console.error('Erro ao atualizar transação:', error);
-      alert('Falha ao atualizar transação.');
+      if (error.response && error.response.status === 400 && error.response.data.message) {
+         alert(`Erro: ${error.response.data.message}`);
+      } else {
+         alert('Falha ao atualizar transação.');
+      }
     }
   };
 
@@ -366,7 +370,7 @@ function Dashboard() {
                 <TableRow key={transacao.id}>
                   <TableCell>{transacao.descricao}</TableCell>
                   <TableCell>{transacao.tipo}</TableCell> 
-                  <TableCell>{transacao.categoria?.tipoCategoria}</TableCell>
+                  <TableCell>{transacao.tipoCategoria}</TableCell>
                   <TableCell 
                     align="right"
                     sx={{ color: transacao.tipo === 'RECEITA' ? 'green' : 'red' }} 
