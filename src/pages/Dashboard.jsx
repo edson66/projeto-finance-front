@@ -23,6 +23,7 @@ import {
 } from '@mui/material';
 
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs'; 
 import api from '../service/api'; 
 
@@ -44,6 +45,7 @@ const styleModal = {
 
 
 function Dashboard() {
+  const nav = useNavigate();
   
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState('');
@@ -205,13 +207,23 @@ const handleSalvarEdicao = async (event) => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('authToken'); 
+    navigate('/'); 
+  };
+
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       
-      <Typography component="h1" variant="h4" gutterBottom>
-        Meu Dashboard Financeiro
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography component="h1" variant="h4" gutterBottom sx={{ mb: 0 }}>
+          Meu Dashboard Financeiro
+        </Typography>
+        <Button variant="outlined" color="error" onClick={handleLogout}>
+          Sair (Logout)
+        </Button>
+      </Box>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid xs={12} sm={4}>
