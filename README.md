@@ -7,7 +7,6 @@ Interface web para o **Projeto Finance**, uma aplicação completa de controle f
 O front-end é construído com **React (Vite)** e **Material-UI (MUI)** para um design moderno e responsivo, consumindo uma [API Spring Boot](https://github.com/edson66/finance-api) (hospedada separadamente) para todas as operações de dados.
 
 O site está no ar em: [projeto-finance-front.vercel.app](https://projeto-finance-front.vercel.app)
-*(Lembre-se de atualizar este link para o seu domínio real da Vercel)*
 
 ## ✨ Funcionalidades Principais
 
